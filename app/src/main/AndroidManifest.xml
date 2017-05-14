@@ -27,9 +27,10 @@
         <receiver android:name=".AlarmReciever"/>
 
         <!-- Register to perform boot time operation. like resetting the alarm-->
+        <!-- Here it is disable which will be enable at run time in Utils class -->
         <receiver
             android:name=".SampleBootReceiver"
-            android:enabled="true">
+            android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"></action>
             </intent-filter>
