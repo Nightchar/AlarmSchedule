@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.widget.Toast;
 
 import java.util.Calendar;
 
@@ -17,6 +18,7 @@ public class Utils {
 
     /**
      * Enable Boot receiver and Schedule alarm manager.
+     *
      * @param context
      * @param content
      */
@@ -27,29 +29,36 @@ public class Utils {
 
     /**
      * Schedule alarm manager.
+     *
      * @param context
      * @param content
      */
     public static void scheduleAlarmManager(Context context, String content) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis() + (10 * 1000)); // start alarm just after 10 sec
-        //calendar.set(Calendar.HOUR_OF_DAY, 1); // to set 1:00 am
-        //calendar.set(Calendar.MINUTE, 3);
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-                AlarmManager.INTERVAL_HOUR, getPendingIntent(context, content)); //AlarmManager.INTERVAL_DAY
+        if (isAlarmSet(context, content)) {
+            Toast.makeText(context, "Alarm is already set", Toast.LENGTH_LONG).show();
+        } else {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis() + (10 * 1000)); // start alarm just after 10 sec
+            //calendar.set(Calendar.HOUR_OF_DAY, 1); // to set 1:00 am
+            //calendar.set(Calendar.MINUTE, 3);
+            alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                    AlarmManager.INTERVAL_HOUR, getPendingIntent(context, content)); //AlarmManager.INTERVAL_DAY
+        }
     }
 
     private static PendingIntent getPendingIntent(Context context, String content) {
-        Intent notificationIntent = new Intent(context, AlarmReciever.class);
-        notificationIntent.putExtra(AlarmReciever.CONTENT, content);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent alarmReceiverIntent = new Intent(context, AlarmReciever.class);
+        alarmReceiverIntent.putExtra(AlarmReciever.CONTENT, content);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmReceiverIntent, PendingIntent
+                .FLAG_UPDATE_CURRENT);
 
         return pendingIntent;
     }
 
     /**
      * Enable Boot receiver
+     *
      * @param context
      */
     private static void enableBootReceiver(Context context) {
@@ -59,5 +68,21 @@ public class Utils {
         pm.setComponentEnabledSetting(receiver,
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP);
+    }
+
+    /**
+     * Check alarm for Alarm Receiver is already set or not.
+     *
+     * @param context
+     * @param content
+     * @return
+     */
+    private static boolean isAlarmSet(Context context, String content) {
+        Intent alarmReceiverIntent = new Intent(context, AlarmReciever.class);
+        alarmReceiverIntent.putExtra(AlarmReciever.CONTENT, content);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmReceiverIntent, PendingIntent
+                .FLAG_NO_CREATE);
+
+        return pendingIntent != null;
     }
 }
